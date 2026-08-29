@@ -129,6 +129,7 @@
   .retype-input:focus{outline:none;border-color:var(--accent);}
   .retype-input.correct{border-color:var(--good);background:#E9F8EF;}
   .retype-input.wrong{border-color:var(--bad);background:#FCEBEB;}
+  .passage-input{resize:vertical;min-height:110px;line-height:1.5;font-family:'Nunito',sans-serif;}
 
   .feedback{border-radius:12px;padding:12px 14px;font-size:14.5px;line-height:1.5;margin-bottom:14px;font-weight:600;}
   .feedback.correct{background:#E9F8EF;color:#1c6b3d;border:1.5px solid var(--good);}
@@ -656,6 +657,425 @@ I:{
 }
 };
 
+/* ---------------- Mastery-mode question pools (used once a Fremantium badge is already earned) ---------------- */
+/* Starter bank: 10 MC + 10 retype per skill (180 total). Structure supports appending more anytime. */
+const MP_POOLS = {
+A:{
+  mc:[
+    {type:"mc",prompt:"Which sentence is correctly punctuated?",
+      options:[`the rottnest island ferry leaves at nine.`,`The Rottnest Island ferry leaves at nine`,`The Rottnest Island ferry leaves at nine.`,`The Rottnest Island Ferry leaves at nine.`],
+      correct:2, explain:"'Rottnest Island' is a place name — 'ferry' is not part of the name, so it stays lower case."},
+    {type:"mc",prompt:"Which sentence is correctly punctuated?",
+      options:[`albert einstein was a brilliant scientist.`,`Albert Einstein was a brilliant scientist`,`Albert Einstein was a brilliant scientist.`,`Albert einstein was a brilliant Scientist.`],
+      correct:2, explain:"'Albert Einstein' is a person's name — both words need capitals."},
+    {type:"mc",prompt:"Which sentence is correctly punctuated?",
+      options:[`the museum is closed on mondays.`,`The museum is closed on Mondays`,`The museum is closed on Mondays.`,`The Museum is closed on mondays.`],
+      correct:2, explain:"'Mondays' is a day, so it needs a capital — 'museum' doesn't."},
+    {type:"mc",prompt:"Which sentence is correctly punctuated?",
+      options:[`we travelled to broome in june.`,`We travelled to Broome in June`,`We travelled to Broome in June.`,`We travelled to broome in June.`],
+      correct:2, explain:"'Broome' is a place and 'June' is a month — both need capitals."},
+    {type:"mc",prompt:"Which sentence is correctly punctuated?",
+      options:[`captain cook sailed to australia.`,`Captain Cook sailed to Australia`,`Captain Cook sailed to Australia.`,`captain Cook sailed to australia.`],
+      correct:2, explain:"'Captain Cook' is a name and 'Australia' is a place — both need capitals."},
+    {type:"mc",prompt:"Which sentence is correctly punctuated?",
+      options:[`the library opens early on wednesdays.`,`The library opens early on Wednesdays`,`The library opens early on Wednesdays.`,`The Library opens early on wednesdays.`],
+      correct:2, explain:"'Wednesdays' is a day, so it needs a capital — 'library' doesn't."},
+    {type:"mc",prompt:"Which sentence is correctly punctuated?",
+      options:[`our excursion to the aquarium was fun.`,`Our excursion to the Aquarium was fun.`,`Our excursion to the aquarium was fun.`,`our excursion to the aquarium was fun`],
+      correct:2, explain:"'Aquarium' here is just a common noun, not part of a proper name, so no capital is needed."},
+    {type:"mc",prompt:"Which sentence is correctly punctuated?",
+      options:[`she moved to karratha in august.`,`She moved to Karratha in August`,`She moved to Karratha in August.`,`She moved to karratha in August.`],
+      correct:2, explain:"'Karratha' is a place and 'August' is a month — both need capitals."},
+    {type:"mc",prompt:"Which sentence is correctly punctuated?",
+      options:[`the anzac day parade starts at dawn.`,`The Anzac Day parade starts at dawn`,`The Anzac Day parade starts at dawn.`,`The anzac day parade starts at Dawn.`],
+      correct:2, explain:"'Anzac Day' is the name of a specific day, so both words need capitals — 'dawn' doesn't."},
+    {type:"mc",prompt:"Which sentence is correctly punctuated?",
+      options:[`mount everest is the tallest mountain.`,`Mount Everest is the tallest mountain`,`Mount Everest is the tallest mountain.`,`mount Everest is the tallest Mountain.`],
+      correct:2, explain:"'Mount Everest' is a place name — both words need capitals."}
+  ],
+  retype:[
+    {type:"retype",incorrect:`the rottnest island ferry leaves every hour`, correct:`The Rottnest Island ferry leaves every hour.`},
+    {type:"retype",incorrect:`albert einstein published his theory in 1905`, correct:`Albert Einstein published his theory in 1905.`},
+    {type:"retype",incorrect:`the museum is closed on mondays`, correct:`The museum is closed on Mondays.`},
+    {type:"retype",incorrect:`we travelled to broome in june`, correct:`We travelled to Broome in June.`},
+    {type:"retype",incorrect:`captain cook sailed to australia in 1770`, correct:`Captain Cook sailed to Australia in 1770.`},
+    {type:"retype",incorrect:`our excursion to the aquarium was fun`, correct:`Our excursion to the aquarium was fun.`},
+    {type:"retype",incorrect:`she moved to karratha last august`, correct:`She moved to Karratha last August.`},
+    {type:"retype",incorrect:`the anzac day parade starts at dawn`, correct:`The Anzac Day parade starts at dawn.`},
+    {type:"retype",incorrect:`mount everest is the tallest mountain on earth`, correct:`Mount Everest is the tallest mountain on Earth.`},
+    {type:"retype",incorrect:`the swan valley is famous for its vineyards`, correct:`The Swan Valley is famous for its vineyards.`}
+  ]
+},
+B:{
+  mc:[
+    {type:"mc",prompt:"Which sentence is correctly punctuated?",
+      options:[`did the bushfire reach the town.`,`Did the bushfire reach the town?`,`Did the bushfire reach the town!`,`did the bushfire reach the town?`],
+      correct:1, explain:"This is a question, so it needs a question mark and a capital to start."},
+    {type:"mc",prompt:"Which sentence is correctly punctuated?",
+      options:[`duck under the table now.`,`Duck under the table now!`,`Duck under the table now?`,`duck under the table now!`],
+      correct:1, explain:"This is an urgent command, so it needs an exclamation mark."},
+    {type:"mc",prompt:"Which sentence is correctly punctuated?",
+      options:[`have you packed your bag.`,`Have you packed your bag?`,`Have you packed your bag!`,`have you packed your bag?`],
+      correct:1, explain:"This is a question, so it needs a question mark and a capital to start."},
+    {type:"mc",prompt:"Which sentence is a calm statement?",
+      options:[`The storm knocked out the power.`,`The storm knocked out the power?`,`The storm knocked out the power!`,`the storm knocked out the power.`],
+      correct:0, explain:"It's just telling us a fact, so it ends with a full stop."},
+    {type:"mc",prompt:"Which sentence is correctly punctuated?",
+      options:[`why is the gate locked.`,`Why is the gate locked?`,`Why is the gate locked!`,`why is the gate locked?`],
+      correct:1, explain:"This is a question, so it needs a question mark and a capital to start."},
+    {type:"mc",prompt:"Which sentence correctly shows strong feeling?",
+      options:[`Incredible, we broke the record.`,`incredible, we broke the record!`,`Incredible, we broke the record!`,`Incredible, we broke the record?`],
+      correct:2, explain:"Strong excitement needs an exclamation mark, and the sentence starts with a capital."},
+    {type:"mc",prompt:"Which sentence is correctly punctuated?",
+      options:[`is the bridge safe to cross.`,`Is the bridge safe to cross?`,`Is the bridge safe to cross!`,`is the bridge safe to cross?`],
+      correct:1, explain:"This is a question, so it needs a question mark and a capital to start."},
+    {type:"mc",prompt:"Which sentence is a calm statement?",
+      options:[`The kettle boiled over.`,`The kettle boiled over?`,`The kettle boiled over!`,`the kettle boiled over.`],
+      correct:0, explain:"It's just telling us a fact, so it ends with a full stop."},
+    {type:"mc",prompt:"Which sentence correctly shows urgency?",
+      options:[`Help, the boat is sinking.`,`help, the boat is sinking!`,`Help, the boat is sinking!`,`Help, the boat is sinking?`],
+      correct:2, explain:"Urgent danger needs an exclamation mark, and the sentence starts with a capital."},
+    {type:"mc",prompt:"Which sentence is correctly punctuated?",
+      options:[`which bus goes to the city.`,`Which bus goes to the city?`,`Which bus goes to the city!`,`which bus goes to the city?`],
+      correct:1, explain:"This is a question, so it needs a question mark and a capital to start."}
+  ],
+  retype:[
+    {type:"retype",incorrect:`did the bushfire reach the town`, correct:`Did the bushfire reach the town?`},
+    {type:"retype",incorrect:`duck under the table now`, correct:`Duck under the table now!`},
+    {type:"retype",incorrect:`have you packed your bag`, correct:`Have you packed your bag?`},
+    {type:"retype",incorrect:`the storm knocked out the power`, correct:`The storm knocked out the power.`},
+    {type:"retype",incorrect:`why is the gate locked`, correct:`Why is the gate locked?`},
+    {type:"retype",incorrect:`incredible we broke the record`, correct:`Incredible, we broke the record!`},
+    {type:"retype",incorrect:`is the bridge safe to cross`, correct:`Is the bridge safe to cross?`},
+    {type:"retype",incorrect:`the kettle boiled over`, correct:`The kettle boiled over.`},
+    {type:"retype",incorrect:`help the boat is sinking`, correct:`Help, the boat is sinking!`},
+    {type:"retype",incorrect:`which bus goes to the city`, correct:`Which bus goes to the city?`}
+  ]
+},
+C:{
+  mc:[
+    {type:"mc",prompt:"Which sentence uses commas correctly in a list?",
+      options:[`The bag had books pencils and a ruler.`,`The bag had books, pencils and a ruler.`,`The bag had books, pencils, and, a ruler.`,`The bag, had books pencils and a ruler.`],
+      correct:1, explain:"A comma after each item except the final two joined by 'and'."},
+    {type:"mc",prompt:"Which sentence uses commas correctly in a list?",
+      options:[`We visited Bali Fiji and Tonga.`,`We visited Bali, Fiji and Tonga.`,`We visited Bali, Fiji, and, Tonga.`,`We visited, Bali Fiji and Tonga.`],
+      correct:1, explain:"A comma after each item except the final two joined by 'and'."},
+    {type:"mc",prompt:"Which sentence uses commas correctly in a list?",
+      options:[`The playlist had pop rock and jazz.`,`The playlist had pop, rock and jazz.`,`The playlist had pop, rock, and, jazz.`,`The playlist, had pop rock and jazz.`],
+      correct:1, explain:"A comma after each item except the final two joined by 'and'."},
+    {type:"mc",prompt:"Which sentence uses commas correctly in a list?",
+      options:[`She grows roses tulips and daisies.`,`She grows roses, tulips and daisies.`,`She grows roses, tulips, and, daisies.`,`She grows, roses tulips and daisies.`],
+      correct:1, explain:"A comma after each item except the final two joined by 'and'."},
+    {type:"mc",prompt:"Which sentence uses commas correctly in a list?",
+      options:[`The toolbox had a hammer nails and screws.`,`The toolbox had a hammer, nails and screws.`,`The toolbox had a hammer, nails, and, screws.`,`The toolbox, had a hammer nails and screws.`],
+      correct:1, explain:"A comma after each item except the final two joined by 'and'."},
+    {type:"mc",prompt:"Which sentence uses commas correctly in a list?",
+      options:[`The bakery sold muffins scones and buns.`,`The bakery sold muffins, scones and buns.`,`The bakery sold muffins, scones, and, buns.`,`The bakery, sold muffins scones and buns.`],
+      correct:1, explain:"A comma after each item except the final two joined by 'and'."},
+    {type:"mc",prompt:"Which sentence uses commas correctly in a list?",
+      options:[`The band played drums guitar and piano.`,`The band played drums, guitar and piano.`,`The band played drums, guitar, and, piano.`,`The band, played drums guitar and piano.`],
+      correct:1, explain:"A comma after each item except the final two joined by 'and'."},
+    {type:"mc",prompt:"Which sentence uses commas correctly in a list?",
+      options:[`The market sold mangoes bananas and pears.`,`The market sold mangoes, bananas and pears.`,`The market sold mangoes, bananas, and, pears.`,`The market, sold mangoes bananas and pears.`],
+      correct:1, explain:"A comma after each item except the final two joined by 'and'."},
+    {type:"mc",prompt:"Which sentence uses commas correctly in a list?",
+      options:[`Our pets are a dog a cat and a fish.`,`Our pets are a dog, a cat and a fish.`,`Our pets are a dog, a cat, and, a fish.`,`Our pets, are a dog a cat and a fish.`],
+      correct:1, explain:"A comma after each item except the final two joined by 'and'."},
+    {type:"mc",prompt:"Which sentence uses commas correctly in a list?",
+      options:[`The chef used thyme rosemary and mint.`,`The chef used thyme, rosemary and mint.`,`The chef used thyme, rosemary, and, mint.`,`The chef, used thyme rosemary and mint.`],
+      correct:1, explain:"A comma after each item except the final two joined by 'and'."}
+  ],
+  retype:[
+    {type:"retype",incorrect:`the bag had books pencils and a ruler`, correct:`The bag had books, pencils and a ruler.`},
+    {type:"retype",incorrect:`we visited bali fiji and tonga`, correct:`We visited Bali, Fiji and Tonga.`},
+    {type:"retype",incorrect:`the playlist had pop rock and jazz`, correct:`The playlist had pop, rock and jazz.`},
+    {type:"retype",incorrect:`she grows roses tulips and daisies`, correct:`She grows roses, tulips and daisies.`},
+    {type:"retype",incorrect:`the toolbox had a hammer nails and screws`, correct:`The toolbox had a hammer, nails and screws.`},
+    {type:"retype",incorrect:`the bakery sold muffins scones and buns`, correct:`The bakery sold muffins, scones and buns.`},
+    {type:"retype",incorrect:`the band played drums guitar and piano`, correct:`The band played drums, guitar and piano.`},
+    {type:"retype",incorrect:`the market sold mangoes bananas and pears`, correct:`The market sold mangoes, bananas and pears.`},
+    {type:"retype",incorrect:`our pets are a dog a cat and a fish`, correct:`Our pets are a dog, a cat and a fish.`},
+    {type:"retype",incorrect:`the chef used thyme rosemary and mint`, correct:`The chef used thyme, rosemary and mint.`}
+  ]
+},
+D:{
+  mc:[
+    {type:"mc",prompt:"Which sentence uses the apostrophe correctly?",
+      options:[`Wasnt that the best day ever?`,`Wasn't that the best day ever?`,`Was'nt that the best day ever?`,`Wasnt' that the best day ever?`],
+      correct:1, explain:"'Wasn't' is short for 'was not'."},
+    {type:"mc",prompt:"Which sentence uses the apostrophe correctly?",
+      options:[`Youve done a great job.`,`You've done a great job.`,`Yo'uve done a great job.`,`You'v e done a great job.`],
+      correct:1, explain:"'You've' is short for 'you have'."},
+    {type:"mc",prompt:"Which sentence uses the apostrophe correctly?",
+      options:[`Wed better hurry.`,`We'd better hurry.`,`We'd' better hurry.`,`W'ed better hurry.`],
+      correct:1, explain:"'We'd' is short for 'we would' or 'we had'."},
+    {type:"mc",prompt:"Which sentence uses the apostrophe correctly?",
+      options:[`Havent you finished yet?`,`Haven't you finished yet?`,`Have'nt you finished yet?`,`Havent' you finished yet?`],
+      correct:1, explain:"'Haven't' is short for 'have not'."},
+    {type:"mc",prompt:"Which sentence uses the apostrophe correctly?",
+      options:[`Its going to rain later.`,`It's going to rain later.`,`Its' going to rain later.`,`I'ts going to rain later.`],
+      correct:1, explain:"'It's' is short for 'it is'."},
+    {type:"mc",prompt:"Which sentence uses the apostrophe correctly?",
+      options:[`Couldnt we stay a little longer?`,`Couldn't we stay a little longer?`,`Could'nt we stay a little longer?`,`Couldnt' we stay a little longer?`],
+      correct:1, explain:"'Couldn't' is short for 'could not'."},
+    {type:"mc",prompt:"Which sentence uses the apostrophe correctly?",
+      options:[`Theyll be here soon.`,`They'll be here soon.`,`The'yll be here soon.`,`Theyl'l be here soon.`],
+      correct:1, explain:"'They'll' is short for 'they will'."},
+    {type:"mc",prompt:"Which sentence uses the apostrophe correctly?",
+      options:[`Im not sure about that.`,`I'm not sure about that.`,`I'm' not sure about that.`,`Im' not sure about that.`],
+      correct:1, explain:"'I'm' is short for 'I am'."},
+    {type:"mc",prompt:"Which sentence uses the apostrophe correctly?",
+      options:[`Whos coming to the party?`,`Who's coming to the party?`,`Who's' coming to the party?`,`Whos' coming to the party?`],
+      correct:1, explain:"'Who's' is short for 'who is'."},
+    {type:"mc",prompt:"Which sentence uses the apostrophe correctly?",
+      options:[`Shell need her umbrella.`,`She'll need her umbrella.`,`She'l l need her umbrella.`,`Shel'l need her umbrella.`],
+      correct:1, explain:"'She'll' is short for 'she will'."}
+  ],
+  retype:[
+    {type:"retype",incorrect:`wasnt that surprising`, correct:`Wasn't that surprising.`},
+    {type:"retype",incorrect:`youve done a great job`, correct:`You've done a great job.`},
+    {type:"retype",incorrect:`wed better hurry home`, correct:`We'd better hurry home.`},
+    {type:"retype",incorrect:`you havent finished your homework`, correct:`You haven't finished your homework.`},
+    {type:"retype",incorrect:`its going to rain later`, correct:`It's going to rain later.`},
+    {type:"retype",incorrect:`we couldnt find the keys`, correct:`We couldn't find the keys.`},
+    {type:"retype",incorrect:`theyll be here soon`, correct:`They'll be here soon.`},
+    {type:"retype",incorrect:`im not sure about that`, correct:`I'm not sure about that.`},
+    {type:"retype",incorrect:`she wasnt home yesterday`, correct:`She wasn't home yesterday.`},
+    {type:"retype",incorrect:`he shouldve called first`, correct:`He should've called first.`}
+  ]
+},
+E:{
+  mc:[
+    {type:"mc",prompt:"One farmer owns the tractor. Which is correct?",
+      options:[`The farmers tractor broke down.`,`The farmer's tractor broke down.`,`The farmers' tractor broke down.`,`The farmer's' tractor broke down.`],
+      correct:1, explain:"One owner (farmer) gets 's added."},
+    {type:"mc",prompt:"Many farmers own the fields. Which is correct?",
+      options:[`The farmers fields were flooded.`,`The farmer's fields were flooded.`,`The farmers' fields were flooded.`,`The farmers's fields were flooded.`],
+      correct:2, explain:"More than one owner (farmers) gets the apostrophe placed after the s."},
+    {type:"mc",prompt:"One dolphin owns the fin. Which is correct?",
+      options:[`The dolphins fin sliced the water.`,`The dolphin's fin sliced the water.`,`The dolphins' fin sliced the water.`,`The dolphin's' fin sliced the water.`],
+      correct:1, explain:"One owner (dolphin) gets 's added."},
+    {type:"mc",prompt:"Many children own the toys. Which is correct?",
+      options:[`The childrens toys were scattered.`,`The children's toys were scattered.`,`The childrens' toys were scattered.`,`The children's' toys were scattered.`],
+      correct:1, explain:"'Children' is already plural, so it still just gets 's added (not s')."},
+    {type:"mc",prompt:"One nurse owns the badge. Which is correct?",
+      options:[`The nurses badge was pinned neatly.`,`The nurse's badge was pinned neatly.`,`The nurses' badge was pinned neatly.`,`The nurse's' badge was pinned neatly.`],
+      correct:1, explain:"One owner (nurse) gets 's added."},
+    {type:"mc",prompt:"Many nurses own the badges. Which is correct?",
+      options:[`The nurses badges were pinned neatly.`,`The nurse's badges were pinned neatly.`,`The nurses' badges were pinned neatly.`,`The nurses's badges were pinned neatly.`],
+      correct:2, explain:"More than one owner (nurses) gets the apostrophe placed after the s."},
+    {type:"mc",prompt:"One eagle owns the nest. Which is correct?",
+      options:[`The eagles nest was high on the cliff.`,`The eagle's nest was high on the cliff.`,`The eagles' nest was high on the cliff.`,`The eagle's' nest was high on the cliff.`],
+      correct:1, explain:"One owner (eagle) gets 's added."},
+    {type:"mc",prompt:"Many eagles own the nests. Which is correct?",
+      options:[`The eagles nests were high on the cliff.`,`The eagle's nests were high on the cliff.`,`The eagles' nests were high on the cliff.`,`The eagles's nests were high on the cliff.`],
+      correct:2, explain:"More than one owner (eagles) gets the apostrophe placed after the s."},
+    {type:"mc",prompt:"One captain owns the ship. Which is correct?",
+      options:[`The captains ship sailed at dawn.`,`The captain's ship sailed at dawn.`,`The captains' ship sailed at dawn.`,`The captain's' ship sailed at dawn.`],
+      correct:1, explain:"One owner (captain) gets 's added."},
+    {type:"mc",prompt:"Many captains own the ships. Which is correct?",
+      options:[`The captains ships sailed at dawn.`,`The captain's ships sailed at dawn.`,`The captains' ships sailed at dawn.`,`The captains's ships sailed at dawn.`],
+      correct:2, explain:"More than one owner (captains) gets the apostrophe placed after the s."}
+  ],
+  retype:[
+    {type:"retype",incorrect:`the farmers tractor broke down`, correct:`The farmer's tractor broke down.`},
+    {type:"retype",incorrect:`the farmers fields were flooded`, correct:`The farmers' fields were flooded.`},
+    {type:"retype",incorrect:`the dolphins fin sliced the water`, correct:`The dolphin's fin sliced the water.`},
+    {type:"retype",incorrect:`the childrens toys were scattered`, correct:`The children's toys were scattered.`},
+    {type:"retype",incorrect:`the nurses badge was pinned neatly`, correct:`The nurse's badge was pinned neatly.`},
+    {type:"retype",incorrect:`the nurses badges were pinned neatly`, correct:`The nurses' badges were pinned neatly.`},
+    {type:"retype",incorrect:`the eagles nest was high on the cliff`, correct:`The eagle's nest was high on the cliff.`},
+    {type:"retype",incorrect:`the eagles nests were high on the cliff`, correct:`The eagles' nests were high on the cliff.`},
+    {type:"retype",incorrect:`the captains ship sailed at dawn`, correct:`The captain's ship sailed at dawn.`},
+    {type:"retype",incorrect:`the captains ships sailed at dawn`, correct:`The captains' ships sailed at dawn.`}
+  ]
+},
+F:{
+  mc:[
+    {type:"mc",prompt:"Which sentence uses a comma correctly?",
+      options:[`Once the bell rang the students lined up.`,`Once the bell rang, the students lined up.`,`Once, the bell rang the students lined up.`,`Once the bell rang the students, lined up.`],
+      correct:1, explain:"The comma comes right after the opening phrase 'Once the bell rang'."},
+    {type:"mc",prompt:"Which sentence correctly fences off the extra information?",
+      options:[`The pilot, who had flown for decades landed safely.`,`The pilot who had flown for decades, landed safely.`,`The pilot, who had flown for decades, landed safely.`,`The pilot who had flown for decades landed safely, .`],
+      correct:2, explain:"A pair of commas is needed around 'who had flown for decades'."},
+    {type:"mc",prompt:"Which sentence uses a comma correctly?",
+      options:[`Cold and tired the hikers reached the summit.`,`Cold and tired, the hikers reached the summit.`,`Cold, and tired the hikers reached the summit.`,`Cold and tired the hikers, reached the summit.`],
+      correct:1, explain:"The comma comes right after the opening phrase 'Cold and tired'."},
+    {type:"mc",prompt:"Which sentence correctly fences off the extra information?",
+      options:[`The bridge, which was built in 1920 is still standing.`,`The bridge which was built in 1920, is still standing.`,`The bridge, which was built in 1920, is still standing.`,`The bridge which was built in 1920 is, still standing.`],
+      correct:2, explain:"A pair of commas is needed around 'which was built in 1920'."},
+    {type:"mc",prompt:"Which sentence uses a comma correctly?",
+      options:[`During the holidays, we visited Rottnest Island.`,`During the holidays we visited Rottnest Island.`,`During, the holidays we visited Rottnest Island.`,`During the holidays we, visited Rottnest Island.`],
+      correct:0, explain:"The comma comes right after the opening phrase 'During the holidays'."},
+    {type:"mc",prompt:"Which sentence correctly fences off the extra information?",
+      options:[`The scientist, who discovered the cure won an award.`,`The scientist who discovered the cure, won an award.`,`The scientist, who discovered the cure, won an award.`,`The scientist who discovered the cure won an award, .`],
+      correct:2, explain:"A pair of commas is needed around 'who discovered the cure'."},
+    {type:"mc",prompt:"Which sentence uses a comma correctly?",
+      options:[`Nervous but excited the team walked onto the field.`,`Nervous but excited, the team walked onto the field.`,`Nervous, but excited the team walked onto the field.`,`Nervous but excited the team, walked onto the field.`],
+      correct:1, explain:"The comma comes right after the opening phrase 'Nervous but excited'."},
+    {type:"mc",prompt:"Which sentence correctly fences off the extra information?",
+      options:[`The recipe, which takes an hour tastes amazing.`,`The recipe which takes an hour, tastes amazing.`,`The recipe, which takes an hour, tastes amazing.`,`The recipe which takes an hour tastes, amazing.`],
+      correct:2, explain:"A pair of commas is needed around 'which takes an hour'."},
+    {type:"mc",prompt:"Which sentence uses a comma correctly?",
+      options:[`Before the concert began, the crowd grew restless.`,`Before the concert began the crowd grew restless.`,`Before, the concert began the crowd grew restless.`,`Before the concert began the crowd, grew restless.`],
+      correct:0, explain:"The comma comes right after the opening phrase 'Before the concert began'."},
+    {type:"mc",prompt:"Which sentence correctly fences off the extra information?",
+      options:[`The engineer, who designed the bridge retired last year.`,`The engineer who designed the bridge, retired last year.`,`The engineer, who designed the bridge, retired last year.`,`The engineer who designed the bridge retired last year, .`],
+      correct:2, explain:"A pair of commas is needed around 'who designed the bridge'."}
+  ],
+  retype:[
+    {type:"retype",incorrect:`once the bell rang the students lined up`, correct:`Once the bell rang, the students lined up.`},
+    {type:"retype",incorrect:`the pilot who had flown for decades landed safely`, correct:`The pilot, who had flown for decades, landed safely.`},
+    {type:"retype",incorrect:`cold and tired the hikers reached the summit`, correct:`Cold and tired, the hikers reached the summit.`},
+    {type:"retype",incorrect:`the bridge which was built in 1920 is still standing`, correct:`The bridge, which was built in 1920, is still standing.`},
+    {type:"retype",incorrect:`during the holidays we visited rottnest island`, correct:`During the holidays, we visited Rottnest Island.`},
+    {type:"retype",incorrect:`the scientist who discovered the cure won an award`, correct:`The scientist, who discovered the cure, won an award.`},
+    {type:"retype",incorrect:`nervous but excited the team walked onto the field`, correct:`Nervous but excited, the team walked onto the field.`},
+    {type:"retype",incorrect:`the recipe which takes an hour tastes amazing`, correct:`The recipe, which takes an hour, tastes amazing.`},
+    {type:"retype",incorrect:`before the concert began the crowd grew restless`, correct:`Before the concert began, the crowd grew restless.`},
+    {type:"retype",incorrect:`the engineer who designed the bridge retired last year`, correct:`The engineer, who designed the bridge, retired last year.`}
+  ]
+},
+G:{
+  mc:[
+    {type:"mc",prompt:"Which sentence punctuates the speech correctly?",
+      options:[`The captain ordered, "hold your positions."`,`The captain ordered, "Hold your positions."`,`The captain ordered "Hold your positions."`,`The captain ordered, "Hold your positions".`],
+      correct:1, explain:"Comma after 'ordered', capital to start the speech, full stop inside."},
+    {type:"mc",prompt:"Which sentence punctuates the speech correctly?",
+      options:[`She murmured, "That's odd."`,`She murmured "That's odd."`,`She murmured, "that's odd."`,`She murmured, "That's odd".`],
+      correct:0, explain:"Comma after 'murmured', capital to start the speech, full stop inside."},
+    {type:"mc",prompt:"Which sentence punctuates the speech correctly?",
+      options:[`The judge announced, "Order in the court!"`,`The judge announced "Order in the court!"`,`The judge announced, "order in the court!"`,`The judge announced, "Order in the court"!`],
+      correct:0, explain:"Comma after 'announced', capital to start the speech, exclamation mark inside."},
+    {type:"mc",prompt:"Which sentence punctuates the speech correctly?",
+      options:[`He questioned, "Where were you last night?"`,`He questioned "Where were you last night?"`,`He questioned, "where were you last night?"`,`He questioned, "Where were you last night"?`],
+      correct:0, explain:"Comma after 'questioned', capital to start the speech, question mark inside."},
+    {type:"mc",prompt:"Which sentence punctuates the speech correctly?",
+      options:[`Mum reminded us, "Pack your raincoats."`,`Mum reminded us "Pack your raincoats."`,`Mum reminded us, "pack your raincoats."`,`Mum reminded us, "Pack your raincoats".`],
+      correct:0, explain:"Comma after 'reminded us', capital to start the speech, full stop inside."},
+    {type:"mc",prompt:"Which sentence punctuates the speech correctly?",
+      options:[`The captain announced, "we are diving now."`,`The captain announced, "We are diving now."`,`The captain announced "We are diving now."`,`The captain announced, "We are diving now".`],
+      correct:1, explain:"Comma after 'announced', capital to start the speech, full stop inside."},
+    {type:"mc",prompt:"Which sentence punctuates the speech correctly?",
+      options:[`The nurse explained, "The medicine is safe."`,`The nurse explained "The medicine is safe."`,`The nurse explained, "the medicine is safe."`,`The nurse explained, "The medicine is safe".`],
+      correct:0, explain:"Comma after 'explained', capital to start the speech, full stop inside."},
+    {type:"mc",prompt:"Which sentence punctuates the speech correctly?",
+      options:[`The referee shouted, "Foul!"`,`The referee shouted "Foul!"`,`The referee shouted, "foul!"`,`The referee shouted, "Foul"!`],
+      correct:0, explain:"Comma after 'shouted', capital to start the speech, exclamation mark inside."},
+    {type:"mc",prompt:"Which sentence punctuates the speech correctly?",
+      options:[`The scientist reported, "The results are surprising."`,`The scientist reported "The results are surprising."`,`The scientist reported, "the results are surprising."`,`The scientist reported, "The results are surprising".`],
+      correct:0, explain:"Comma after 'reported', capital to start the speech, full stop inside."},
+    {type:"mc",prompt:"Which sentence punctuates the speech correctly?",
+      options:[`Grandpa chuckled, "That reminds me of a story."`,`Grandpa chuckled "That reminds me of a story."`,`Grandpa chuckled, "that reminds me of a story."`,`Grandpa chuckled, "That reminds me of a story".`],
+      correct:0, explain:"Comma after 'chuckled', capital to start the speech, full stop inside."}
+  ],
+  retype:[
+    {type:"retype",incorrect:`The vet advised keep the bandage dry`, correct:`The vet advised, "Keep the bandage dry."`},
+    {type:"retype",incorrect:`The pilot warned brace for landing`, correct:`The pilot warned, "Brace for landing!"`},
+    {type:"retype",incorrect:`She admitted I forgot my homework`, correct:`She admitted, "I forgot my homework."`},
+    {type:"retype",incorrect:`The coach reminded the players warm up first`, correct:`The coach reminded the players, "Warm up first!"`},
+    {type:"retype",incorrect:`The teacher explained the test is tomorrow`, correct:`The teacher explained, "The test is tomorrow."`},
+    {type:"retype",incorrect:`He whispered someone is behind us`, correct:`He whispered, "Someone is behind us."`},
+    {type:"retype",incorrect:`The captain ordered lower the sails`, correct:`The captain ordered, "Lower the sails!"`},
+    {type:"retype",incorrect:`The judge declared the case is closed`, correct:`The judge declared, "The case is closed."`},
+    {type:"retype",incorrect:`Dad asked did you lock the door`, correct:`Dad asked, "Did you lock the door?"`},
+    {type:"retype",incorrect:`The guide announced we are almost there`, correct:`The guide announced, "We are almost there."`}
+  ]
+},
+H:{
+  mc:[
+    {type:"mc",prompt:"Which sentence punctuates the speech correctly?",
+      options:[`"Hold your positions," ordered the captain.`,`"Hold your positions", ordered the captain.`,`Hold your positions," ordered the captain.`,`"hold your positions," ordered the captain.`],
+      correct:0, explain:"The comma stays inside the closing speech marks."},
+    {type:"mc",prompt:"Which sentence punctuates the speech correctly?",
+      options:[`"That's odd," she murmured.`,`"That's odd", she murmured.`,`That's odd," she murmured.`,`"That's odd," She murmured.`],
+      correct:0, explain:"The comma stays inside the speech marks, and 'she' doesn't need a capital."},
+    {type:"mc",prompt:"Which sentence punctuates the speech correctly?",
+      options:[`"Order in the court!" announced the judge.`,`"Order in the court"! announced the judge.`,`Order in the court!" announced the judge.`,`"order in the court!" announced the judge.`],
+      correct:0, explain:"The exclamation mark stays inside the closing speech marks."},
+    {type:"mc",prompt:"Which sentence punctuates the speech correctly?",
+      options:[`"Where were you last night?" he questioned.`,`"Where were you last night"? he questioned.`,`Where were you last night?" he questioned.`,`"Where were you last night?" He questioned.`],
+      correct:0, explain:"The question mark stays inside the closing speech marks."},
+    {type:"mc",prompt:"Which sentence punctuates the speech correctly?",
+      options:[`"Pack your raincoats," Mum reminded us.`,`"Pack your raincoats", Mum reminded us.`,`Pack your raincoats," Mum reminded us.`,`"pack your raincoats," Mum reminded us.`],
+      correct:0, explain:"The comma stays inside the closing speech marks."},
+    {type:"mc",prompt:"Which sentence punctuates the speech correctly?",
+      options:[`"We are diving now," announced the captain.`,`"We are diving now", announced the captain.`,`We are diving now," announced the captain.`,`"we are diving now," announced the captain.`],
+      correct:0, explain:"The comma stays inside the closing speech marks."},
+    {type:"mc",prompt:"Which sentence punctuates the speech correctly?",
+      options:[`"The medicine is safe," explained the nurse.`,`"The medicine is safe", explained the nurse.`,`The medicine is safe," explained the nurse.`,`"The medicine is safe," Explained the nurse.`],
+      correct:0, explain:"The comma stays inside the speech marks, and 'explained' doesn't need a capital."},
+    {type:"mc",prompt:"Which sentence punctuates the speech correctly?",
+      options:[`"Foul!" shouted the referee.`,`"Foul"! shouted the referee.`,`Foul!" shouted the referee.`,`"foul!" shouted the referee.`],
+      correct:0, explain:"The exclamation mark stays inside the closing speech marks."},
+    {type:"mc",prompt:"Which sentence punctuates the speech correctly?",
+      options:[`"The results are surprising," reported the scientist.`,`"The results are surprising", reported the scientist.`,`The results are surprising," reported the scientist.`,`"The results are surprising," Reported the scientist.`],
+      correct:0, explain:"The comma stays inside the closing speech marks."},
+    {type:"mc",prompt:"Which sentence punctuates the speech correctly?",
+      options:[`"That reminds me of a story," chuckled Grandpa.`,`"That reminds me of a story", chuckled Grandpa.`,`That reminds me of a story," chuckled Grandpa.`,`"that reminds me of a story," chuckled Grandpa.`],
+      correct:0, explain:"The comma stays inside the closing speech marks."}
+  ],
+  retype:[
+    {type:"retype",incorrect:`Keep the bandage dry, advised the vet.`, correct:`"Keep the bandage dry," advised the vet.`},
+    {type:"retype",incorrect:`Brace for landing! warned the pilot.`, correct:`"Brace for landing!" warned the pilot.`},
+    {type:"retype",incorrect:`I forgot my homework, admitted Zali.`, correct:`"I forgot my homework," admitted Zali.`},
+    {type:"retype",incorrect:`Warm up first! reminded the coach.`, correct:`"Warm up first!" reminded the coach.`},
+    {type:"retype",incorrect:`The test is tomorrow, explained the teacher.`, correct:`"The test is tomorrow," explained the teacher.`},
+    {type:"retype",incorrect:`Someone is behind us, whispered Theo.`, correct:`"Someone is behind us," whispered Theo.`},
+    {type:"retype",incorrect:`Lower the sails! ordered the captain.`, correct:`"Lower the sails!" ordered the captain.`},
+    {type:"retype",incorrect:`The case is closed, declared the judge.`, correct:`"The case is closed," declared the judge.`},
+    {type:"retype",incorrect:`Did you lock the door? asked Dad.`, correct:`"Did you lock the door?" asked Dad.`},
+    {type:"retype",incorrect:`We are almost there, announced the guide.`, correct:`"We are almost there," announced the guide.`}
+  ]
+},
+I:{
+  mc:[
+    {type:"mc",prompt:"Which sentence punctuates the split speech correctly?",
+      options:[`"I believe," said Noah, "we're on the right track."`,`"I believe" said Noah, "we're on the right track."`,`"I believe," said Noah "we're on the right track."`,`"I believe," said Noah, "We're on the right track."`],
+      correct:0, explain:"Commas fence the middle tag; the second part continues the sentence, so it stays lower case."},
+    {type:"mc",prompt:"Which sentence punctuates the split speech correctly?",
+      options:[`"Be careful," cautioned Mia, "the ice is thin."`,`"Be careful" cautioned Mia, "the ice is thin."`,`"Be careful," cautioned Mia "the ice is thin."`,`"Be careful," cautioned Mia, "The ice is thin."`],
+      correct:0, explain:"Commas fence the middle tag; the second part continues the sentence, so it stays lower case."},
+    {type:"mc",prompt:"Which sentence punctuates the split speech correctly?",
+      options:[`"That's unusual," remarked Kai, "the door is never locked."`,`"That's unusual" remarked Kai, "the door is never locked."`,`"That's unusual," remarked Kai "the door is never locked."`,`"That's unusual," remarked Kai, "The door is never locked."`],
+      correct:0, explain:"Commas fence the middle tag; the second part continues the sentence, so it stays lower case."},
+    {type:"mc",prompt:"Here the second part is a NEW sentence. Which is correct?",
+      options:[`"Get down," yelled Sam. "The ceiling is collapsing."`,`"Get down," yelled Sam, "the ceiling is collapsing."`,`"Get down" yelled Sam. "The ceiling is collapsing."`,`"Get down," yelled Sam. "the ceiling is collapsing."`],
+      correct:0, explain:"Because the second part is a new sentence, use a full stop after the tag and a capital letter."},
+    {type:"mc",prompt:"Which sentence punctuates the split speech correctly?",
+      options:[`"I'm exhausted," sighed Layla, "we should rest here."`,`"I'm exhausted" sighed Layla, "we should rest here."`,`"I'm exhausted," sighed Layla "we should rest here."`,`"I'm exhausted," sighed Layla, "We should rest here."`],
+      correct:0, explain:"Commas fence the middle tag; the second part continues the sentence, so it stays lower case."},
+    {type:"mc",prompt:"Which sentence punctuates the split speech correctly?",
+      options:[`"Hold on," warned the guide, "the path gets steep."`,`"Hold on" warned the guide, "the path gets steep."`,`"Hold on," warned the guide "the path gets steep."`,`"Hold on," warned the guide, "The path gets steep."`],
+      correct:0, explain:"Commas fence the middle tag; the second part continues the sentence, so it stays lower case."},
+    {type:"mc",prompt:"Which sentence punctuates the split speech correctly?",
+      options:[`"That can't be right," muttered the teacher, "check it again."`,`"That can't be right" muttered the teacher, "check it again."`,`"That can't be right," muttered the teacher "check it again."`,`"That can't be right," muttered the teacher, "Check it again."`],
+      correct:0, explain:"Commas fence the middle tag; the second part continues the sentence, so it stays lower case."},
+    {type:"mc",prompt:"Here the second part is a NEW sentence. Which is correct?",
+      options:[`"Quiet down," whispered the librarian. "Someone is studying."`,`"Quiet down," whispered the librarian, "someone is studying."`,`"Quiet down" whispered the librarian. "Someone is studying."`,`"Quiet down," whispered the librarian. "someone is studying."`],
+      correct:0, explain:"Because the second part is a new sentence, use a full stop after the tag and a capital letter."},
+    {type:"mc",prompt:"Which sentence punctuates the split speech correctly?",
+      options:[`"We made it," cheered the team, "after all that training."`,`"We made it" cheered the team, "after all that training."`,`"We made it," cheered the team "after all that training."`,`"We made it," cheered the team, "After all that training."`],
+      correct:0, explain:"Commas fence the middle tag; the second part continues the sentence, so it stays lower case."},
+    {type:"mc",prompt:"Here the second part is a NEW sentence. Which is correct?",
+      options:[`"Watch your step," said the guide. "The rocks are slippery."`,`"Watch your step," said the guide, "the rocks are slippery."`,`"Watch your step" said the guide. "The rocks are slippery."`,`"Watch your step," said the guide. "the rocks are slippery."`],
+      correct:0, explain:"Because the second part is a new sentence, use a full stop after the tag and a capital letter."}
+  ],
+  retype:[
+    {type:"retype",incorrect:`i believe said Noah were on the right track`, correct:`"I believe," said Noah, "we're on the right track."`},
+    {type:"retype",incorrect:`be careful cautioned Mia the ice is thin`, correct:`"Be careful," cautioned Mia, "the ice is thin."`},
+    {type:"retype",incorrect:`thats unusual remarked Kai the door is never locked`, correct:`"That's unusual," remarked Kai, "the door is never locked."`},
+    {type:"retype",incorrect:`get down yelled Sam the ceiling is collapsing`, correct:`"Get down," yelled Sam. "The ceiling is collapsing."`},
+    {type:"retype",incorrect:`im exhausted sighed Layla we should rest here`, correct:`"I'm exhausted," sighed Layla, "we should rest here."`},
+    {type:"retype",incorrect:`hold on warned the guide the path gets steep`, correct:`"Hold on," warned the guide, "the path gets steep."`},
+    {type:"retype",incorrect:`that cant be right muttered the teacher check it again`, correct:`"That can't be right," muttered the teacher, "check it again."`},
+    {type:"retype",incorrect:`quiet down whispered the librarian someone is studying`, correct:`"Quiet down," whispered the librarian. "Someone is studying."`},
+    {type:"retype",incorrect:`we made it cheered the team after all that training`, correct:`"We made it," cheered the team, "after all that training."`},
+    {type:"retype",incorrect:`watch your step said the guide the rocks are slippery`, correct:`"Watch your step," said the guide. "The rocks are slippery."`}
+  ]
+}
+};
+
 /* ---------------- examples for single-skill "learn" screens ---------------- */
 const EXAMPLES = {
   A:[
@@ -710,6 +1130,98 @@ const COMBO_ALLOC = {
   9:{mc:[["A",1],["B",1],["C",1],["D",1],["E",1]], retype:[["A",1],["B",1],["C",1],["D",1],["E",1]]},
   11:{mc:[["A",1],["B",1],["C",1],["D",1],["E",1]], retype:[["B",1],["C",1],["D",1],["E",1],["F",1]]},
   15:{mc:[["A",1],["B",1],["C",1],["D",1],["E",1]], retype:[["F",1],["G",1],["H",1],["I",1],["C",1]]}
+};
+
+/* ---------------- Mastery-mode passage bank for combo worlds ----------------
+   Each passage uses ONLY punctuation skills already covered by that combo world
+   (cumulative up to that point) and includes at least one instance of each.
+   Levels 3/5/7/9/11 stay within a 2-4 sentence passage as requested.
+   Level 15 (all 9 skills, including 3 distinct dialogue patterns) genuinely can't
+   fit every skill into 2-4 sentences while still reading naturally, so those
+   passages run to ~6 sentences instead — a deliberate exception, flagged here. */
+const MP_PASSAGES = {
+  3:[ // A + B only: full stops, capitals, ?, !  — no commas, apostrophes or dialogue yet
+    {correct:`Mia was hiding from the planes when she heard some popping noises. What could it be? She was under attack!`,
+     incorrect:`mia was hiding from the planes when she heard some popping noises what could it be she was under attack`},
+    {correct:`Jack ran towards the shed at full speed. Was the dog still inside? He could not believe his luck!`,
+     incorrect:`jack ran towards the shed at full speed was the dog still inside he could not believe his luck`},
+    {correct:`The plane landed safely on the runway. Did everyone make it out okay? The pilot cheered with relief!`,
+     incorrect:`the plane landed safely on the runway did everyone make it out okay the pilot cheered with relief`},
+    {correct:`Sarah opened the mysterious box slowly. What was hidden inside? A tiny golden key gleamed in the light!`,
+     incorrect:`sarah opened the mysterious box slowly what was hidden inside a tiny golden key gleamed in the light`},
+    {correct:`The crowd waited for the race to begin. Who would win this year? The runners sprinted off at once!`,
+     incorrect:`the crowd waited for the race to begin who would win this year the runners sprinted off at once`},
+    {correct:`Tom climbed to the top of the cliff. Could he see the whole island from there? The view took his breath away!`,
+     incorrect:`tom climbed to the top of the cliff could he see the whole island from there the view took his breath away`}
+  ],
+  5:[ // + C (list commas)
+    {correct:`The explorers packed tents, ropes and torches. Would the cave be dangerous? Strange sounds echoed from deep inside!`,
+     incorrect:`the explorers packed tents ropes and torches would the cave be dangerous strange sounds echoed from deep inside`},
+    {correct:`Maya bought apples, bananas and grapes for the picnic. Was the weather going to hold? Dark clouds rolled in suddenly!`,
+     incorrect:`maya bought apples bananas and grapes for the picnic was the weather going to hold dark clouds rolled in suddenly`},
+    {correct:`The chef needed flour, eggs and sugar for the cake. Did the oven heat up in time? The cake rose perfectly!`,
+     incorrect:`the chef needed flour eggs and sugar for the cake did the oven heat up in time the cake rose perfectly`},
+    {correct:`The team packed jerseys, boots and water bottles. Was the bus going to be late? They arrived just in time!`,
+     incorrect:`the team packed jerseys boots and water bottles was the bus going to be late they arrived just in time`},
+    {correct:`Liam collected shells, rocks and driftwood from the beach. Could he carry it all home? His bag ripped open completely!`,
+     incorrect:`liam collected shells rocks and driftwood from the beach could he carry it all home his bag ripped open completely`},
+    {correct:`The zoo keeper fed the lions, tigers and bears. Would the elephants want breakfast too? They trumpeted loudly for food!`,
+     incorrect:`the zoo keeper fed the lions tigers and bears would the elephants want breakfast too they trumpeted loudly for food`}
+  ],
+  7:[ // + D (contractions only — no possession yet)
+    {correct:`We packed tents, ropes and torches. We couldn't find the map anywhere. Had someone taken it? We weren't ready to give up!`,
+     incorrect:`we packed tents ropes and torches we couldnt find the map anywhere had someone taken it we werent ready to give up`},
+    {correct:`Zoe bought apples, bananas and grapes. She didn't have enough money for juice. Could she borrow some? Her brother wasn't impressed!`,
+     incorrect:`zoe bought apples bananas and grapes she didnt have enough money for juice could she borrow some her brother wasnt impressed`},
+    {correct:`The chef needed flour, eggs and sugar. He couldn't find the sugar anywhere. Had it been used already? He wasn't very happy!`,
+     incorrect:`the chef needed flour eggs and sugar he couldnt find the sugar anywhere had it been used already he wasnt very happy`},
+    {correct:`The team packed jerseys, boots and water bottles. They didn't check the weather forecast. Would it rain today? They weren't prepared for a storm!`,
+     incorrect:`the team packed jerseys boots and water bottles they didnt check the weather forecast would it rain today they werent prepared for a storm`},
+    {correct:`Liam collected shells, rocks and driftwood. He couldn't fit it all in his bag. Would it hold together? The bag wasn't strong enough!`,
+     incorrect:`liam collected shells rocks and driftwood he couldnt fit it all in his bag would it hold together the bag wasnt strong enough`},
+    {correct:`The keeper fed the lions, tigers and bears. He didn't have food left for the monkeys. Were they going hungry? The monkeys weren't very patient!`,
+     incorrect:`the keeper fed the lions tigers and bears he didnt have food left for the monkeys were they going hungry the monkeys werent very patient`}
+  ],
+  9:[ // + E (possession — singular and plural)
+    {correct:`The dog's leash, collar and toy box were chewed to pieces. It didn't come back when called. Was it lost? Its owner wasn't going to give up!`,
+     incorrect:`the dogs leash collar and toy box were chewed to pieces it didnt come back when called was it lost its owner wasnt going to give up`},
+    {correct:`The two teachers' classroom needed chairs, desks and shelves. They couldn't fit everything in. Would the new furniture arrive soon? The students weren't going to wait quietly!`,
+     incorrect:`the two teachers classroom needed chairs desks and shelves they couldnt fit everything in would the new furniture arrive soon the students werent going to wait quietly`},
+    {correct:`The captain's ship carried spices, silk and gold. It didn't reach the harbour on time. Had a storm delayed it? The sailors weren't taking any chances!`,
+     incorrect:`the captains ship carried spices silk and gold it didnt reach the harbour on time had a storm delayed it the sailors werent taking any chances`},
+    {correct:`The girls' cubby house needed paint, nails and timber. They couldn't finish it before dark. Would it survive the storm? Their parents weren't very confident!`,
+     incorrect:`the girls cubby house needed paint nails and timber they couldnt finish it before dark would it survive the storm their parents werent very confident`},
+    {correct:`The eagle's nest held twigs, feathers and moss. It didn't survive the strong winds. Would the chicks be safe? The mother bird wasn't leaving their side!`,
+     incorrect:`the eagles nest held twigs feathers and moss it didnt survive the strong winds would the chicks be safe the mother bird wasnt leaving their side`},
+    {correct:`The players' trophies needed polishing, boxing and labelling. They couldn't finish before the ceremony. Would the coach be upset? Nobody wanted to find out!`,
+     incorrect:`the players trophies needed polishing boxing and labelling they couldnt finish before the ceremony would the coach be upset nobody wanted to find out`}
+  ],
+  11:[ // + F (fronted-adverbial and embedded-clause commas)
+    {correct:`After the storm passed, the dog's leash, collar and toy box were found near the gate. It hadn't moved far. Could it still be scared? Its owner wasn't taking any chances!`,
+     incorrect:`after the storm passed the dogs leash collar and toy box were found near the gate it hadnt moved far could it still be scared its owner wasnt taking any chances`},
+    {correct:`The captain's ship, which carried spices, silk and gold, hadn't reached the harbour. Had a storm delayed it? The sailors weren't taking any chances!`,
+     incorrect:`the captains ship which carried spices silk and gold hadnt reached the harbour had a storm delayed it the sailors werent taking any chances`},
+    {correct:`Despite the rain, the two teachers' classroom still needed chairs, desks and shelves. Wouldn't the new furniture arrive soon? The students weren't going to wait quietly!`,
+     incorrect:`despite the rain the two teachers classroom still needed chairs desks and shelves wouldnt the new furniture arrive soon the students werent going to wait quietly`},
+    {correct:`The eagle's nest, which held twigs, feathers and moss, didn't survive the winds. Would the chicks be safe? The mother bird wasn't leaving their side!`,
+     incorrect:`the eagles nest which held twigs feathers and moss didnt survive the winds would the chicks be safe the mother bird wasnt leaving their side`},
+    {correct:`During the ceremony, the players' trophies, medals and ribbons weren't ready in time. Wasn't the coach furious? Nobody wanted to find out!`,
+     incorrect:`during the ceremony the players trophies medals and ribbons werent ready in time wasnt the coach furious nobody wanted to find out`},
+    {correct:`The girls' cubby house, which needed paint, nails and timber, wasn't finished before dark. Would it survive the storm? Their parents weren't very confident!`,
+     incorrect:`the girls cubby house which needed paint nails and timber wasnt finished before dark would it survive the storm their parents werent very confident`}
+  ],
+  15:[ // ALL 9 skills — deliberately longer (~6 sentences) since this is the "everything so far" level
+    {correct:`After the alarm sounded, the captain's crew grabbed ropes, flares and torches. The captain shouted, "Is everyone accounted for?" She couldn't see through the thick smoke. "Stay calm," she called, "we're almost at the lifeboats." "We made it!" cheered the sailors. Hadn't they trained for exactly this moment?`,
+     incorrect:`after the alarm sounded the captains crew grabbed ropes flares and torches the captain shouted is everyone accounted for she couldnt see through the thick smoke stay calm she called were almost at the lifeboats we made it cheered the sailors hadnt they trained for exactly this moment`},
+    {correct:`Before the storm hit, the two detectives' notebooks, torches and radios were packed. One detective muttered, "This case isn't finished yet." Wasn't the suspect already caught? "Not quite," she said, "there's still one clue missing." "We found it!" shouted her partner. The case wasn't closed until midnight.`,
+     incorrect:`before the storm hit the two detectives notebooks torches and radios were packed one detective muttered this case isnt finished yet wasnt the suspect already caught not quite she said theres still one clue missing we found it shouted her partner the case wasnt closed until midnight`},
+    {correct:`While the rocket prepared for launch, the astronaut's helmet, gloves and boots were checked twice. The commander announced, "We are ready for lift-off." Wouldn't the crew feel nervous before such a big moment? "Hold on tight," she warned, "we're about to launch." "It's working!" cheered the engineers. The astronauts' mission wasn't going to fail today.`,
+     incorrect:`while the rocket prepared for launch the astronauts helmet gloves and boots were checked twice the commander announced we are ready for lift off wouldnt the crew feel nervous before such a big moment hold on tight she warned were about to launch its working cheered the engineers the astronauts mission wasnt going to fail today`},
+    {correct:`After the timer buzzed, the chef's apron, knife and bowl needed washing, drying and stacking. The judge asked, "Whose dish is this?" Couldn't anyone remember whose turn it was? "Wait," said the chef, "it isn't finished cooking." "We won!" shouted the two chefs' team. The judges weren't expecting such a surprise.`,
+     incorrect:`after the timer buzzed the chefs apron knife and bowl needed washing drying and stacking the judge asked whose dish is this couldnt anyone remember whose turn it was wait said the chef it isnt finished cooking we won shouted the two chefs team the judges werent expecting such a surprise`},
+    {correct:`As the ship sailed closer, the pirate's map, compass and spyglass were laid out on the deck. The captain barked, "Is that the island?" Shouldn't the treasure be buried somewhere near the cliffs? "Look over there," yelled a sailor, "there's something shining." "We found the gold!" cheered the crew. The sailors' journey wasn't over yet.`,
+     incorrect:`as the ship sailed closer the pirates map compass and spyglass were laid out on the deck the captain barked is that the island shouldnt the treasure be buried somewhere near the cliffs look over there yelled a sailor theres something shining we found the gold cheered the crew the sailors journey wasnt over yet`}
+  ]
 };
 
 /* ---------------- world colour palette (kept from the original elemental design) ---------------- */
@@ -778,10 +1290,23 @@ const PETS = [
 function getPet(id){ return PETS.find(p=>p.id===id); }
 const TIERS_ORDER = ["S","A","B","C"];
 
+/* ---------------- mastery shop (trophies bought with Mastery Points) ---------------- */
+const TROPHIES = [
+  {id:"t1",cost:165,emoji:"🔱"},
+  {id:"t2",cost:165,emoji:"⚜️"},
+  {id:"t3",cost:165,emoji:"🔆"},
+  {id:"t4",cost:165,emoji:"💫"},
+  {id:"t5",cost:165,emoji:"🪐"}
+];
+function getTrophy(id){ return TROPHIES.find(t=>t.id===id); }
+function triangular(n){ return n>0 ? n*(n+1)/2 : 0; } // MP earned by a world at a given Mastery level (M1=1, M2=1+2=3 ... M10=55)
+
 /* ---------------- state ---------------- */
-let state = { screen:"login", levelId:null, qIndex:0, score:0, answered:false, username:"", currentQuestions:[], syncStatus:"idle", syncWarning:false, loginError:"" };
+let state = { screen:"login", levelId:null, qIndex:0, score:0, answered:false, username:"", currentQuestions:[], syncStatus:"idle", syncWarning:false, loginError:"", mpMode:false, mpResult:null };
 let bestScores = {};
+let masteryLevels = {};    // levelId -> 0-10 (0 = Fremantium earned but no Mastery attempts yet)
 let ownedPets = [];         // array of pet ids owned by the current user (each id can appear at most once)
+let ownedTrophies = [];     // array of trophy ids owned by the current user (each id can appear at most once)
 let leaderboardData = [];   // [{name,count}]  — most Fremantium badges
 let recentFremantiumData = []; // [{name,when}] — most recently earned Fremantium badges
 let classLeaderboardData = []; // [{room,count}] — top classes by total Fremantium badges
@@ -803,6 +1328,10 @@ function walletEarned(){ return Object.values(bestScores).reduce((sum,s)=>sum+(s
 function walletSpent(){ return ownedPets.reduce((sum,id)=>{ const p=getPet(id); return sum+(p?p.cost:0); },0); }
 function walletBalance(){ return walletEarned() - walletSpent(); }
 
+function mpEarned(){ return Object.values(masteryLevels).reduce((sum,lvl)=>sum+triangular(lvl||0),0); }
+function mpSpent(){ return ownedTrophies.reduce((sum,id)=>{ const t=getTrophy(id); return sum+(t?t.cost:0); },0); }
+function mpBalance(){ return mpEarned() - mpSpent(); }
+
 /* ---------------- cloud API ---------------- */
 async function apiGet(params){
   if(!CONFIG.API_URL) return null;
@@ -823,6 +1352,7 @@ function render(){
   if(state.screen==="quiz") return renderQuiz();
   if(state.screen==="result") return renderResult();
   if(state.screen==="shop") return renderShop();
+  if(state.screen==="mshop") return renderMasteryShop();
 }
 
 function topbar(showHome){
@@ -872,8 +1402,8 @@ async function submitLogin(){
 
   if(!CONFIG.API_URL){
     // offline/local-only mode
-    state.username = u; bestScores = {}; ownedPets = []; leaderboardData = []; recentFremantiumData = [];
-    classLeaderboardData = []; classAverageData = [];
+    state.username = u; bestScores = {}; masteryLevels = {}; ownedPets = []; ownedTrophies = [];
+    leaderboardData = []; recentFremantiumData = []; classLeaderboardData = []; classAverageData = [];
     state.syncWarning = true; state.loginError = "";
     state.screen="menu"; render();
     return;
@@ -890,25 +1420,30 @@ async function submitLogin(){
   }
 
   state.username = u; state.loginError = "";
-  const [progRes, petsRes, lbRes, recentRes, classLbRes, classAvgRes] = await Promise.all([
+  const [progRes, petsRes, trophiesRes, lbRes, recentRes, classLbRes, classAvgRes] = await Promise.all([
     apiGet({action:"getProgress", username:u}),
     apiGet({action:"getPets", username:u}),
+    apiGet({action:"getTrophies", username:u}),
     apiGet({action:"leaderboard"}),
     apiGet({action:"recentFremantium"}),
     apiGet({action:"classLeaderboard"}),
     apiGet({action:"classAverage"})
   ]);
 
-  bestScores = {};
+  bestScores = {}; masteryLevels = {};
   if(progRes && progRes.progress){
-    Object.keys(progRes.progress).forEach(levelId=>{ bestScores[Number(levelId)] = Number(progRes.progress[levelId].score); });
+    Object.keys(progRes.progress).forEach(levelId=>{
+      bestScores[Number(levelId)] = Number(progRes.progress[levelId].score);
+      masteryLevels[Number(levelId)] = Number(progRes.progress[levelId].mastery || 0);
+    });
   }
   ownedPets = (petsRes && petsRes.pets) ? petsRes.pets : [];
+  ownedTrophies = (trophiesRes && trophiesRes.trophies) ? trophiesRes.trophies : [];
   leaderboardData = (lbRes && lbRes.leaderboard) ? lbRes.leaderboard : [];
   recentFremantiumData = (recentRes && recentRes.recent) ? recentRes.recent : [];
   classLeaderboardData = (classLbRes && classLbRes.classLeaderboard) ? classLbRes.classLeaderboard : [];
   classAverageData = (classAvgRes && classAvgRes.classAverage) ? classAvgRes.classAverage : [];
-  state.syncWarning = !progRes || !petsRes || !lbRes || !recentRes || !classLbRes || !classAvgRes;
+  state.syncWarning = !progRes || !petsRes || !trophiesRes || !lbRes || !recentRes || !classLbRes || !classAvgRes;
 
   state.screen="menu"; render();
 }
@@ -919,8 +1454,8 @@ function renderLoading(){
 
 function changePlayer(){
   state.screen="login"; state.username=""; state.loginError="";
-  bestScores={}; ownedPets=[]; leaderboardData=[]; recentFremantiumData=[];
-  classLeaderboardData=[]; classAverageData=[];
+  bestScores={}; masteryLevels={}; ownedPets=[]; ownedTrophies=[];
+  leaderboardData=[]; recentFremantiumData=[]; classLeaderboardData=[]; classAverageData=[];
   render();
 }
 
@@ -963,11 +1498,28 @@ function badgeLadderHtml(){
   return `<div class="intro-banner"><b>The badge ladder:</b> ${BADGES.map(b=>`${b.emoji} ${b.title}`).join(" &nbsp;→&nbsp; ")}</div>`;
 }
 
+function trophyCabinetHtml(){
+  const items = TROPHIES.map(t=>{
+    const owned = ownedTrophies.includes(t.id);
+    return `<span style="font-size:30px;opacity:${owned?"1":".2"};filter:${owned?"none":"grayscale(1)"};margin-right:8px;">${t.emoji}</span>`;
+  }).join("");
+  return `<div class="petsowned"><h4>🏆 Trophy Cabinet (${ownedTrophies.length}/5)</h4><div style="padding:6px 0;">${items}</div></div>`;
+}
+
 function renderMenu(){
   const fremantiumCount = Object.values(bestScores).filter(s=>s===10).length;
   const cards = LEVELS.map(l=>{
     const best = bestScores[l.id];
+    const mastery = masteryLevels[l.id] || 0;
     const badge = best!==undefined ? getBadge(best) : null;
+    let bestChip;
+    if(mastery>0){
+      bestChip = `<div class="best" style="background:rgba(244,185,66,.9);color:#3B2900;">🎖️ M${mastery} Mastery</div>`;
+    } else if(badge){
+      bestChip = `<div class="best">${badge.emoji} ${badge.title} (${best}/10)</div>`;
+    } else {
+      bestChip = `<div class="best" style="opacity:.75">Not played yet</div>`;
+    }
     return `
     <button class="levelcard" style="background:${l.theme.bg}" onclick="openLevel(${l.id})">
       <div class="kindtag">${l.kind==="combo"?"Combo":"Level "+l.id}</div>
@@ -977,7 +1529,7 @@ function renderMenu(){
         <div class="lname">${l.theme.name}</div>
         <div class="lfocus">${l.focus}</div>
       </div>
-      ${badge ? `<div class="best">${badge.emoji} ${badge.title} (${best}/10)</div>` : `<div class="best" style="opacity:.75">Not played yet</div>`}
+      ${bestChip}
     </button>`;
   }).join("");
 
@@ -987,20 +1539,23 @@ function renderMenu(){
       <div class="chip player">👋 <b>${state.username}</b> <button onclick="changePlayer()">Change</button></div>
       <div class="chip">⚓ Fremantium: ${fremantiumCount} / 15</div>
       <div class="chip">💰 $${walletBalance()}</div>
+      <div class="chip">🎖️ MP: ${mpBalance()}</div>
       <button class="shopbtn" onclick="openShop()">🐾 Pet Shop</button>
+      <button class="shopbtn" style="background:linear-gradient(135deg,#4A5FD9,#F4B942);" onclick="openMasteryShop()">🏆 Mastery Shop</button>
     </div>
     ${state.syncWarning ? `<div class="warn-banner">⚠️ Couldn't fully sync with the class score sheet — some info may be out of date this session.</div>` : ""}
     ${leaderboardHtml()}
     <div class="petsowned"><h4>Your Pets</h4>${petsOwnedHtml()}</div>
+    ${trophyCabinetHtml()}
     ${badgeLadderHtml()}
-    <div class="intro-banner">Welcome, word wizard! Choose a level below. Single-skill levels teach one rule; combo levels mix in everything you've learned so far. Earn badges for good scores, and money for every NEW badge — spend it in the Pet Shop!</div>
+    <div class="intro-banner">Welcome, word wizard! Choose a level below. Single-skill levels teach one rule; combo levels mix in everything you've learned so far. Earn badges for good scores, and money for every NEW badge — spend it in the Pet Shop! Once you've earned a Fremantium on a world, go for Mastery to earn MP and unlock trophies.</div>
     <div class="levelgrid">${cards}</div>
     <footer class="credits">Punctuation Quest &middot; built for classroom practice</footer>
   `;
 }
 
 function openLevel(id){ state.levelId=id; state.screen="learn"; render(); window.scrollTo(0,0); }
-function goMenu(){ state.screen="menu"; render(); window.scrollTo(0,0); }
+function goMenu(){ state.screen="menu"; state.mpMode=false; render(); window.scrollTo(0,0); }
 
 function renderLearn(){
   const level = getLevel(state.levelId);
@@ -1015,6 +1570,16 @@ function renderLearn(){
     const items = level.skills.map(s=>`<li><b>${SKILL_META[s].title}:</b> ${RULES_SHORT[s]}</li>`).join("");
     bodyHtml = `<div class="recapbox">🧩 <b>This level mixes:</b><ul>${items}</ul></div>`;
   }
+  const best = bestScores[level.id];
+  const mastery = masteryLevels[level.id] || 0;
+  let masteryBtnHtml = "";
+  if(best===10){
+    if(mastery>=10){
+      masteryBtnHtml = `<div class="btnrow"><div class="feedback" style="background:#FFF3DA;border:1.5px solid #F4B942;color:#7a5c14;width:100%;text-align:center;">🏆 Fully Mastered — M10 achieved!</div></div>`;
+    } else {
+      masteryBtnHtml = `<div class="btnrow"><button class="btn wide" style="background:linear-gradient(135deg,#4A5FD9,#F4B942);" onclick="startQuiz(true)">🎖️ Go for Mastery (M${mastery+1}) — score 10/10 to earn ${mastery+1} MP →</button></div>`;
+    }
+  }
   app.innerHTML = `
     ${topbar(true)}
     <div class="card">
@@ -1023,25 +1588,42 @@ function renderLearn(){
         <div><h2>${level.theme.name}</h2><span>LEVEL ${level.id} &middot; ${level.focus}</span></div>
       </div>
       ${bodyHtml}
-      <div class="btnrow"><button class="btn wide" style="background:${level.theme.accent}" onclick="startQuiz()">Start the 10-question challenge →</button></div>
+      <div class="btnrow"><button class="btn wide" style="background:${level.theme.accent}" onclick="startQuiz(false)">Start the 10-question challenge →</button></div>
+      ${masteryBtnHtml}
     </div>
   `;
 }
 
-function buildQuestions(level){
+function buildQuestions(level, mpMode){
+  if(!mpMode){
+    if(level.kind==="single"){
+      const pool = POOLS[level.skill];
+      return pickRandom(pool.mc,5).concat(pickRandom(pool.retype,5));
+    }
+    const alloc = COMBO_ALLOC[level.id];
+    const mc = alloc.mc.flatMap(([skill,n])=>pickRandom(POOLS[skill].mc,n));
+    const retype = alloc.retype.flatMap(([skill,n])=>pickRandom(POOLS[skill].retype,n));
+    return mc.concat(retype);
+  }
+  // Mastery mode: draws from the MP-only pools. Hints are never included/shown in this mode.
   if(level.kind==="single"){
-    const pool = POOLS[level.skill];
+    const pool = MP_POOLS[level.skill];
     return pickRandom(pool.mc,5).concat(pickRandom(pool.retype,5));
   }
+  // Combo Mastery mode: 5 MC (as usual) + 5 whole-passage retypes. Each passage uses only the
+  // punctuation skills that world's combo has covered so far, with at least one instance of each.
   const alloc = COMBO_ALLOC[level.id];
-  const mc = alloc.mc.flatMap(([skill,n])=>pickRandom(POOLS[skill].mc,n));
-  const retype = alloc.retype.flatMap(([skill,n])=>pickRandom(POOLS[skill].retype,n));
-  return mc.concat(retype);
+  const mc = alloc.mc.flatMap(([skill,n])=>pickRandom(MP_POOLS[skill].mc,n));
+  const passages = pickRandom(MP_PASSAGES[level.id], 5).map(p=>({
+    type:"passage", incorrect:p.incorrect, correct:p.correct
+  }));
+  return mc.concat(passages);
 }
 
-function startQuiz(){
+function startQuiz(mpMode){
   const level = getLevel(state.levelId);
-  state.currentQuestions = buildQuestions(level);
+  state.mpMode = !!mpMode;
+  state.currentQuestions = buildQuestions(level, state.mpMode);
   state.screen="quiz"; state.qIndex=0; state.score=0; state.answered=false;
   render(); window.scrollTo(0,0);
 }
@@ -1050,13 +1632,22 @@ function renderQuiz(){
   const level = getLevel(state.levelId);
   const q = state.currentQuestions[state.qIndex];
   const pct = Math.round((state.qIndex)/state.currentQuestions.length*100);
-  const typeLabel = q.type==="mc" ? "Multiple choice" : "Fix it — retype correctly";
+  const typeLabel = q.type==="mc" ? "Multiple choice" : (q.type==="passage" ? "Fix it — rewrite the passage" : "Fix it — retype correctly");
   const typeColor = q.type==="mc" ? level.theme.accent : "#B0562E";
 
   let bodyHtml = "";
   if(q.type==="mc"){
     const opts = q.options.map((opt,i)=>`<button class="option" id="opt-${i}" onclick="answerMC(${i})">${opt}</button>`).join("");
     bodyHtml = `<div class="qprompt">${q.prompt}</div><div class="options" id="optionsWrap">${opts}</div><div id="feedbackWrap"></div>`;
+  } else if(q.type==="passage"){
+    bodyHtml = `
+      <div class="qprompt">Rewrite the following passage with correct punctuation:</div>
+      <div class="sentence-box">${q.incorrect}</div>
+      <textarea class="retype-input passage-input" id="passageInput" placeholder="Type the corrected passage here"
+        autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off" rows="4"></textarea>
+      <div id="feedbackWrap"></div>
+      <div class="btnrow" id="checkRow"><button class="btn" style="background:${level.theme.accent}" id="checkBtn" onclick="answerPassage()">Check answer</button></div>
+    `;
   } else {
     bodyHtml = `
       <div class="qprompt">Retype this sentence with the correct punctuation:</div>
@@ -1065,12 +1656,13 @@ function renderQuiz(){
         autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off"
         onkeydown="if(event.key==='Enter'){answerRetype();}">
       <div id="feedbackWrap"></div>
-      <div id="hintWrap"><button class="hintlink" onclick="showHint()">💡 Need a hint?</button></div>
+      ${state.mpMode ? `<div id="hintWrap"></div>` : `<div id="hintWrap"><button class="hintlink" onclick="showHint()">💡 Need a hint?</button></div>`}
       <div class="btnrow" id="checkRow"><button class="btn" style="background:${level.theme.accent}" id="checkBtn" onclick="answerRetype()">Check answer</button></div>
     `;
   }
   app.innerHTML = `
     ${topbar(true)}
+    ${state.mpMode ? `<div class="warn-banner" style="background:rgba(244,185,66,.18);border-color:rgba(244,185,66,.5);color:#FFE9B0;">🎖️ Mastery run — no hints available. Score 10/10 to advance!</div>` : ""}
     <div class="card">
       <div class="progresswrap">
         <div class="progressbar"><div class="progressfill" style="width:${pct}%;background:${level.theme.accent}"></div></div>
@@ -1119,10 +1711,30 @@ function answerRetype(){
   input.disabled = true;
   input.classList.add(isCorrect?"correct":"wrong");
   document.getElementById("checkRow").innerHTML = "";
-  document.getElementById("hintWrap").innerHTML = "";
+  if(document.getElementById("hintWrap")) document.getElementById("hintWrap").innerHTML = "";
   if(isCorrect) state.score++;
 
   let msg = isCorrect ? "✅ Correct!" : (closeButCase ? "❌ So close — check your capital letters!" : "❌ Not quite.");
+  document.getElementById("feedbackWrap").innerHTML = `<div class="feedback ${isCorrect?'correct':'wrong'}">${msg}<span class="answer">Correct answer: ${q.correct}</span></div>`;
+  showNextButton();
+}
+
+function answerPassage(){
+  if(state.answered) return;
+  const level = getLevel(state.levelId);
+  const q = state.currentQuestions[state.qIndex];
+  const input = document.getElementById("passageInput");
+  const userVal = normalize(input.value||"");
+  const correctVal = normalize(q.correct);
+  const isCorrect = userVal===correctVal;
+
+  state.answered = true;
+  input.disabled = true;
+  input.classList.add(isCorrect?"correct":"wrong");
+  document.getElementById("checkRow").innerHTML = "";
+  if(isCorrect) state.score++;
+
+  const msg = isCorrect ? "✅ Correct!" : "❌ Not quite — every sentence in the passage needs to be exactly right to score this one.";
   document.getElementById("feedbackWrap").innerHTML = `<div class="feedback ${isCorrect?'correct':'wrong'}">${msg}<span class="answer">Correct answer: ${q.correct}</span></div>`;
   showNextButton();
 }
@@ -1137,10 +1749,33 @@ function nextQuestion(){
   const level = getLevel(state.levelId);
   if(state.qIndex < state.currentQuestions.length-1){
     state.qIndex++; state.answered=false; render();
+  } else if(state.mpMode){
+    finishMasteryAttempt(level);
   } else {
     finishLevel(level);
   }
   window.scrollTo(0,0);
+}
+
+function finishMasteryAttempt(level){
+  const oldMastery = masteryLevels[level.id] || 0;
+  let newMastery = oldMastery;
+  let mpAwarded = 0;
+  if(state.score===10 && oldMastery<10){
+    newMastery = oldMastery + 1;
+    mpAwarded = newMastery; // M1 -> 1 MP, M2 -> 2 MP ... M10 -> 10 MP
+    masteryLevels[level.id] = newMastery;
+  }
+  state.mpResult = { oldMastery, newMastery, mpAwarded, leveledUp: newMastery>oldMastery };
+  state.screen = "result";
+  state.syncStatus = (mpAwarded>0 && CONFIG.API_URL) ? "saving" : "idle";
+  render();
+  if(mpAwarded>0 && CONFIG.API_URL){
+    apiGet({action:"saveMastery", username:state.username, levelId:level.id, mastery:newMastery}).then(res=>{
+      state.syncStatus = res ? "saved" : "error";
+      if(state.screen==="result") render();
+    });
+  }
 }
 
 function finishLevel(level){
@@ -1177,6 +1812,8 @@ function finishLevel(level){
 }
 
 function renderResult(){
+  if(state.mpMode) return renderMasteryResultScreen();
+
   const level = getLevel(state.levelId);
   const badge = getBadge(state.score);
   const tiersHtml = BADGES.map(b=>{
@@ -1211,6 +1848,40 @@ function renderResult(){
         <button class="btn secondary" onclick="goMenu()">🏠 Choose a level</button>
       </div>
       <div class="allTiers"><h4>The badge ladder</h4>${tiersHtml}</div>
+    </div>
+  `;
+}
+
+function renderMasteryResultScreen(){
+  const level = getLevel(state.levelId);
+  const r = state.mpResult || {oldMastery:0,newMastery:0,mpAwarded:0,leveledUp:false};
+  let syncLine = "";
+  if(CONFIG.API_URL){
+    if(state.syncStatus==="saving") syncLine = `<div class="syncline">☁️ Saving to your class score sheet…</div>`;
+    else if(state.syncStatus==="saved") syncLine = `<div class="syncline">☁️ Saved to your class score sheet.</div>`;
+    else if(state.syncStatus==="error") syncLine = `<div class="syncline">⚠️ Couldn't save to the cloud this time — try again with a connection.</div>`;
+  }
+  const moneyLine = r.leveledUp
+    ? `<div class="moneyline">🎖️ M${r.newMastery} achieved! You earned ${r.mpAwarded} MP!</div>`
+    : `<div class="moneyline" style="color:#999;">Score 10/10 to advance your Mastery — no MP earned this attempt.</div>`;
+
+  app.innerHTML = `
+    ${topbar(true)}
+    <div class="card resultwrap">
+      <div class="themebar" style="background:${level.theme.bg};justify-content:center;">
+        <div class="icon">${level.theme.icon}</div>
+        <div><h2>${level.theme.name} — Mastery Run</h2><span>LEVEL ${level.id} &middot; ${level.focus}</span></div>
+      </div>
+      <div class="tieremoji">${r.leveledUp ? "🎖️" : "🙈"}</div>
+      <div class="tiertitle display">${r.leveledUp ? `M${r.newMastery} Mastery` : "Not this time"}</div>
+      <div class="scoreline">SCORE: ${state.score} / 10</div>
+      ${moneyLine}
+      ${syncLine}
+      <div class="tiermsg">${r.newMastery>=10 ? "🏆 Fully Mastered — M10! There's nothing left to earn on this world." : `Current Mastery: M${r.newMastery} / M10`}</div>
+      <div class="btnrow" style="justify-content:center;">
+        ${r.newMastery<10 ? `<button class="btn" style="background:${level.theme.accent}" onclick="startQuiz(true)">🎖️ Go again (M${r.newMastery+1})</button>` : ""}
+        <button class="btn secondary" onclick="goMenu()">🏠 Choose a level</button>
+      </div>
     </div>
   `;
 }
@@ -1287,6 +1958,70 @@ async function buyPet(petId){
   } else {
     document.getElementById("shopMsg").innerHTML = `<div class="feedback wrong">⚠️ ${res && res.message ? res.message : "Couldn't complete the purchase — try again."}</div>`;
     renderShop();
+  }
+}
+
+/* ---------------- mastery shop ---------------- */
+function openMasteryShop(){ state.screen="mshop"; render(); window.scrollTo(0,0); }
+
+function renderMasteryShop(){
+  const balance = mpBalance();
+  const items = TROPHIES.map(t=>{
+    const isMine = ownedTrophies.includes(t.id);
+    const btnHtml = isMine
+      ? `<button class="petbuybtn" disabled style="background:#8a7f5a;">Yours!</button>`
+      : `<button class="petbuybtn" ${balance<t.cost?"disabled":""} onclick="buyTrophy('${t.id}')">Buy</button>`;
+    return `
+      <div class="petcard">
+        <div class="emoji">${t.emoji}</div>
+        <div class="cost">${t.cost} MP</div>
+        ${btnHtml}
+      </div>`;
+  }).join("");
+
+  app.innerHTML = `
+    ${topbar(true)}
+    <div class="card">
+      <div class="walletbanner" style="background:linear-gradient(135deg,#4A5FD9,#F4B942);">
+        <div><div class="lbl">YOUR MASTERY POINTS</div><div class="amt">${mpBalance()} MP</div></div>
+        <div style="font-size:34px;">🏆</div>
+      </div>
+      <div class="petsowned"><h4>Your Trophies</h4>${trophyCabinetHtml_inner()}</div>
+      <h3 style="margin:0 0 4px;">Mastery Shop</h3>
+      <p style="font-size:12.5px;color:#777;margin:0 0 16px;">Earn MP by getting 10/10 again on a world after you've already earned its Fremantium badge — each new Mastery level (M1 → M10) earns you that many MP. Fully mastering all 15 worlds earns exactly 825 MP — enough for every trophy here.</p>
+      <div class="shopgrid">${items}</div>
+      <div id="shopMsg"></div>
+    </div>
+  `;
+}
+
+function trophyCabinetHtml_inner(){
+  return `<div class="petsownedrow"><span class="tierlbl">Trophies</span><span class="icons">${
+    TROPHIES.map(t=>{
+      const owned = ownedTrophies.includes(t.id);
+      return owned ? t.emoji : `<span class="none" style="font-size:20px;opacity:.3;">${t.emoji}</span>`;
+    }).join(" ")
+  }</span></div>`;
+}
+
+async function buyTrophy(trophyId){
+  const t = getTrophy(trophyId);
+  if(mpBalance() < t.cost) return;
+  if(ownedTrophies.includes(trophyId)) return;
+
+  if(!CONFIG.API_URL){
+    ownedTrophies.push(trophyId);
+    renderMasteryShop();
+    return;
+  }
+  document.getElementById("shopMsg").innerHTML = `<div class="feedback">⏳ Buying…</div>`;
+  const res = await apiGet({action:"buyTrophy", username:state.username, trophyId});
+  if(res && res.status==="ok"){
+    ownedTrophies.push(trophyId);
+    renderMasteryShop();
+  } else {
+    document.getElementById("shopMsg").innerHTML = `<div class="feedback wrong">⚠️ ${res && res.message ? res.message : "Couldn't complete the purchase — try again."}</div>`;
+    renderMasteryShop();
   }
 }
 
