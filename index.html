@@ -197,7 +197,7 @@
 
 /* ---- CONFIG: paste your deployed Google Apps Script Web App URL here ---- */
 const CONFIG = {
-  API_URL: "https://script.google.com/macros/s/AKfycbzbKoE_doqm9OB9rJlsrGN1EisflLcWS7E3kkz20PDM8EZ6fzIi9yo3SPTdR8Rl5nj4/exec"   // e.g. "https://script.google.com/macros/s/AKfycb.../exec"  — leave blank to play without cloud sync
+  API_URL: "https://script.google.com/macros/s/AKfycbzbKoE_doqm9OB9rJlsrGN1EisflLcWS7E3kkz20PDM8EZ6fzIi9yo3SPTdR8Rl5nj4/exec"
 };
 
 /* ---------------- skill metadata ---------------- */
@@ -1310,7 +1310,10 @@ let ownedTrophies = [];     // array of trophy ids owned by the current user (ea
 let leaderboardData = [];   // [{name,count}]  — most Fremantium badges
 let recentFremantiumData = []; // [{name,when}] — most recently earned Fremantium badges
 let classLeaderboardData = []; // [{room,count}] — top classes by total Fremantium badges
-let classAverageData = [];     // [{room,average,studentCount}] — top classes by average earnings
+let classAverageData = [];     // [{room,average,studentCount}] — top classes by average points
+let trophyLeaderboardData = []; // [{name,count}] — top students by total trophies
+let recentTrophiesData = [];    // [{name,when}] — top students by most recent trophy purchase
+let classTrophyLeaderboardData = []; // [{room,count}] — top classes by total trophies
 
 function getLevel(id){ return LEVELS.find(l=>l.id===id); }
 function normalize(s){
@@ -1404,6 +1407,7 @@ async function submitLogin(){
     // offline/local-only mode
     state.username = u; bestScores = {}; masteryLevels = {}; ownedPets = []; ownedTrophies = [];
     leaderboardData = []; recentFremantiumData = []; classLeaderboardData = []; classAverageData = [];
+    trophyLeaderboardData = []; recentTrophiesData = []; classTrophyLeaderboardData = [];
     state.syncWarning = true; state.loginError = "";
     state.screen="menu"; render();
     return;
@@ -1420,14 +1424,17 @@ async function submitLogin(){
   }
 
   state.username = u; state.loginError = "";
-  const [progRes, petsRes, trophiesRes, lbRes, recentRes, classLbRes, classAvgRes] = await Promise.all([
+  const [progRes, petsRes, trophiesRes, lbRes, recentRes, classLbRes, classAvgRes, trophyLbRes, recentTrophyRes, classTrophyLbRes] = await Promise.all([
     apiGet({action:"getProgress", username:u}),
     apiGet({action:"getPets", username:u}),
     apiGet({action:"getTrophies", username:u}),
     apiGet({action:"leaderboard"}),
     apiGet({action:"recentFremantium"}),
     apiGet({action:"classLeaderboard"}),
-    apiGet({action:"classAverage"})
+    apiGet({action:"classAverage"}),
+    apiGet({action:"trophyLeaderboard"}),
+    apiGet({action:"recentTrophies"}),
+    apiGet({action:"classTrophyLeaderboard"})
   ]);
 
   bestScores = {}; masteryLevels = {};
@@ -1443,7 +1450,10 @@ async function submitLogin(){
   recentFremantiumData = (recentRes && recentRes.recent) ? recentRes.recent : [];
   classLeaderboardData = (classLbRes && classLbRes.classLeaderboard) ? classLbRes.classLeaderboard : [];
   classAverageData = (classAvgRes && classAvgRes.classAverage) ? classAvgRes.classAverage : [];
-  state.syncWarning = !progRes || !petsRes || !trophiesRes || !lbRes || !recentRes || !classLbRes || !classAvgRes;
+  trophyLeaderboardData = (trophyLbRes && trophyLbRes.trophyLeaderboard) ? trophyLbRes.trophyLeaderboard : [];
+  recentTrophiesData = (recentTrophyRes && recentTrophyRes.recent) ? recentTrophyRes.recent : [];
+  classTrophyLeaderboardData = (classTrophyLbRes && classTrophyLbRes.classTrophyLeaderboard) ? classTrophyLbRes.classTrophyLeaderboard : [];
+  state.syncWarning = !progRes || !petsRes || !trophiesRes || !lbRes || !recentRes || !classLbRes || !classAvgRes || !trophyLbRes || !recentTrophyRes || !classTrophyLbRes;
 
   state.screen="menu"; render();
 }
@@ -1456,6 +1466,7 @@ function changePlayer(){
   state.screen="login"; state.username=""; state.loginError="";
   bestScores={}; masteryLevels={}; ownedPets=[]; ownedTrophies=[];
   leaderboardData=[]; recentFremantiumData=[]; classLeaderboardData=[]; classAverageData=[];
+  trophyLeaderboardData=[]; recentTrophiesData=[]; classTrophyLeaderboardData=[];
   render();
 }
 
@@ -1474,23 +1485,43 @@ function timeAgo(iso){
 
 function leaderboardHtml(){
   if(!CONFIG.API_URL) return "";
+
   const mostRows = leaderboardData.length
     ? leaderboardData.map((row,i)=>`<div class="lbrow"><span><span class="rank">#${i+1}</span>${row.name}</span><span>⚓ ${row.count}</span></div>`).join("")
     : `<div class="lbempty">No Fremantium badges earned yet — be the first!</div>`;
+
   const recentRows = recentFremantiumData.length
     ? recentFremantiumData.map((row,i)=>`<div class="lbrow"><span><span class="rank">#${i+1}</span>${row.name}</span><span>${timeAgo(row.when)}</span></div>`).join("")
     : `<div class="lbempty">No Fremantium badges earned yet — be the first!</div>`;
+
+  const trophyRows = trophyLeaderboardData.length
+    ? trophyLeaderboardData.map((row,i)=>`<div class="lbrow"><span><span class="rank">#${i+1}</span>${row.name}</span><span>🏆 ${row.count}</span></div>`).join("")
+    : `<div class="lbempty">No trophies earned yet — be the first!</div>`;
+
+  const recentTrophyRows = recentTrophiesData.length
+    ? recentTrophiesData.map((row,i)=>`<div class="lbrow"><span><span class="rank">#${i+1}</span>${row.name}</span><span>${timeAgo(row.when)}</span></div>`).join("")
+    : `<div class="lbempty">No trophies earned yet — be the first!</div>`;
+
+  const classAvgRows = classAverageData.length
+    ? classAverageData.map((row,i)=>`<div class="lbrow"><span><span class="rank">#${i+1}</span>Room ${row.room}</span><span>${row.average.toFixed(1)} pts avg</span></div>`).join("")
+    : `<div class="lbempty">No class points yet!</div>`;
+
   const classMostRows = classLeaderboardData.length
     ? classLeaderboardData.map((row,i)=>`<div class="lbrow"><span><span class="rank">#${i+1}</span>Room ${row.room}</span><span>⚓ ${row.count}</span></div>`).join("")
     : `<div class="lbempty">No class has earned a Fremantium badge yet!</div>`;
-  const classAvgRows = classAverageData.length
-    ? classAverageData.map((row,i)=>`<div class="lbrow"><span><span class="rank">#${i+1}</span>Room ${row.room}</span><span>$${row.average.toFixed(1)} avg</span></div>`).join("")
-    : `<div class="lbempty">No class scores yet!</div>`;
+
+  const classTrophyRows = classTrophyLeaderboardData.length
+    ? classTrophyLeaderboardData.map((row,i)=>`<div class="lbrow"><span><span class="rank">#${i+1}</span>Room ${row.room}</span><span>🏆 ${row.count}</span></div>`).join("")
+    : `<div class="lbempty">No class has earned a trophy yet!</div>`;
+
   return `
     <div class="leaderboardcard"><h3>🏆 Top 5 — Most Fremantium Badges</h3>${mostRows}</div>
     <div class="leaderboardcard"><h3>⏱️ Top 5 — Most Recent Fremantium</h3>${recentRows}</div>
+    <div class="leaderboardcard"><h3>🎖️ Top 5 — Most Trophies</h3>${trophyRows}</div>
+    <div class="leaderboardcard"><h3>⏱️ Top 5 — Most Recent Trophy</h3>${recentTrophyRows}</div>
+    <div class="leaderboardcard"><h3>📊 Top 3 Classes — Average Points</h3>${classAvgRows}</div>
     <div class="leaderboardcard"><h3>🏫 Top 3 Classes — Most Fremantium Badges</h3>${classMostRows}</div>
-    <div class="leaderboardcard"><h3>📊 Top 3 Classes — Average Score</h3>${classAvgRows}</div>
+    <div class="leaderboardcard"><h3>🏫 Top 3 Classes — Most Trophies</h3>${classTrophyRows}</div>
   `;
 }
 
@@ -1544,12 +1575,12 @@ function renderMenu(){
       <button class="shopbtn" style="background:linear-gradient(135deg,#4A5FD9,#F4B942);" onclick="openMasteryShop()">🏆 Mastery Shop</button>
     </div>
     ${state.syncWarning ? `<div class="warn-banner">⚠️ Couldn't fully sync with the class score sheet — some info may be out of date this session.</div>` : ""}
-    ${leaderboardHtml()}
-    <div class="petsowned"><h4>Your Pets</h4>${petsOwnedHtml()}</div>
-    ${trophyCabinetHtml()}
-    ${badgeLadderHtml()}
     <div class="intro-banner">Welcome, word wizard! Choose a level below. Single-skill levels teach one rule; combo levels mix in everything you've learned so far. Earn badges for good scores, and money for every NEW badge — spend it in the Pet Shop! Once you've earned a Fremantium on a world, go for Mastery to earn MP and unlock trophies.</div>
     <div class="levelgrid">${cards}</div>
+    ${badgeLadderHtml()}
+    ${trophyCabinetHtml()}
+    <div class="petsowned"><h4>Your Pets</h4>${petsOwnedHtml()}</div>
+    ${leaderboardHtml()}
     <footer class="credits">Punctuation Quest &middot; built for classroom practice</footer>
   `;
 }
