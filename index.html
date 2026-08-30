@@ -1327,6 +1327,16 @@ function pickRandom(arr, n){
   }
   return copy.slice(0, n);
 }
+// Returns a NEW mc question object with its options shuffled and .correct re-pointed to
+// wherever the right answer landed — leaves the original pool question untouched.
+function shuffleMcOptions(q){
+  const order = q.options.map((_,i)=>i);
+  for(let i=order.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [order[i],order[j]] = [order[j],order[i]];
+  }
+  return { ...q, options: order.map(i=>q.options[i]), correct: order.indexOf(q.correct) };
+}
 function walletEarned(){ return Object.values(bestScores).reduce((sum,s)=>sum+(s||0),0); }
 function walletSpent(){ return ownedPets.reduce((sum,id)=>{ const p=getPet(id); return sum+(p?p.cost:0); },0); }
 function walletBalance(){ return walletEarned() - walletSpent(); }
@@ -1626,29 +1636,35 @@ function renderLearn(){
 }
 
 function buildQuestions(level, mpMode){
+  let result;
   if(!mpMode){
     if(level.kind==="single"){
       const pool = POOLS[level.skill];
-      return pickRandom(pool.mc,5).concat(pickRandom(pool.retype,5));
+      result = pickRandom(pool.mc,5).concat(pickRandom(pool.retype,5));
+    } else {
+      const alloc = COMBO_ALLOC[level.id];
+      const mc = alloc.mc.flatMap(([skill,n])=>pickRandom(POOLS[skill].mc,n));
+      const retype = alloc.retype.flatMap(([skill,n])=>pickRandom(POOLS[skill].retype,n));
+      result = mc.concat(retype);
     }
-    const alloc = COMBO_ALLOC[level.id];
-    const mc = alloc.mc.flatMap(([skill,n])=>pickRandom(POOLS[skill].mc,n));
-    const retype = alloc.retype.flatMap(([skill,n])=>pickRandom(POOLS[skill].retype,n));
-    return mc.concat(retype);
-  }
-  // Mastery mode: draws from the MP-only pools. Hints are never included/shown in this mode.
-  if(level.kind==="single"){
+  } else if(level.kind==="single"){
+    // Mastery mode: draws from the MP-only pools. Hints are never included/shown in this mode.
     const pool = MP_POOLS[level.skill];
-    return pickRandom(pool.mc,5).concat(pickRandom(pool.retype,5));
+    result = pickRandom(pool.mc,5).concat(pickRandom(pool.retype,5));
+  } else {
+    // Combo Mastery mode: 5 MC (as usual) + 5 whole-passage retypes. Each passage uses only the
+    // punctuation skills that world's combo has covered so far, with at least one instance of each.
+    const alloc = COMBO_ALLOC[level.id];
+    const mc = alloc.mc.flatMap(([skill,n])=>pickRandom(MP_POOLS[skill].mc,n));
+    const passages = pickRandom(MP_PASSAGES[level.id], 5).map(p=>({
+      type:"passage", incorrect:p.incorrect, correct:p.correct
+    }));
+    result = mc.concat(passages);
   }
-  // Combo Mastery mode: 5 MC (as usual) + 5 whole-passage retypes. Each passage uses only the
-  // punctuation skills that world's combo has covered so far, with at least one instance of each.
-  const alloc = COMBO_ALLOC[level.id];
-  const mc = alloc.mc.flatMap(([skill,n])=>pickRandom(MP_POOLS[skill].mc,n));
-  const passages = pickRandom(MP_PASSAGES[level.id], 5).map(p=>({
-    type:"passage", incorrect:p.incorrect, correct:p.correct
-  }));
-  return mc.concat(passages);
+  // Shuffle the option order for every multiple-choice question so the correct answer isn't
+  // always in the same position — stops students pattern-matching "it's always A" instead of
+  // actually applying the rule.
+  return result.map(q => q.type==="mc" ? shuffleMcOptions(q) : q);
 }
 
 function startQuiz(mpMode){
